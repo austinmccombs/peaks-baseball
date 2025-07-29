@@ -39,14 +39,7 @@ const LoadingMessage = styled.div`
   color: #c3ac83;
 `;
 
-const ErrorMessage = styled.div`
-  text-align: center;
-  padding: 2rem;
-  color: var(--error-color);
-  background: #FFEBEE;
-  border-radius: 8px;
-  margin: 2rem 0;
-`;
+
 
 const Stats = () => {
   const [seasonStats, setSeasonStats] = useState({ batting_leaders: [], pitching_leaders: [] });
@@ -131,8 +124,8 @@ const Stats = () => {
 
       {(!seasonStats.batting_leaders || seasonStats.batting_leaders.length === 0) && 
        (!seasonStats.pitching_leaders || seasonStats.pitching_leaders.length === 0) && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#c3ac83' }}>
-          <p>No statistics available yet.</p>
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p style={{ color: '#2C2C2C' }}>No data available</p>
         </div>
       )}
     </StatsContainer>

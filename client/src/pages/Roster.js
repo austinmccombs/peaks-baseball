@@ -140,59 +140,7 @@ const LoadingMessage = styled.div`
   color: var(--primary-text);
 `;
 
-const ErrorMessage = styled.div`
-  text-align: center;
-  padding: 2rem;
-  color: var(--error-color);
-  background: #FFEBEE;
-  border-radius: 8px;
-  margin: 2rem 0;
-`;
 
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--primary-text);
-`;
-
-const EmptyStateIcon = styled.div`
-  font-size: 4rem;
-  color: #c3ac83;
-  margin-bottom: 2rem;
-  opacity: 0.6;
-`;
-
-const EmptyStateTitle = styled.h2`
-  font-size: 2rem;
-  color: var(--primary-text);
-  margin-bottom: 1rem;
-`;
-
-const EmptyStateMessage = styled.p`
-  font-size: 1.1rem;
-  color: var(--primary-text);
-  opacity: 0.8;
-  margin-bottom: 2rem;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const EmptyStateAction = styled(Link)`
-  display: inline-block;
-  background: #c3ac83;
-  color: #2C2C2C;
-  padding: 1rem 2rem;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: #b5a075;
-    transform: translateY(-2px);
-  }
-`;
 
 const Roster = () => {
   const [players, setPlayers] = useState([]);
@@ -226,18 +174,9 @@ const Roster = () => {
     return (
       <RosterContainer>
         <PageTitle>Team Roster</PageTitle>
-        <EmptyState>
-          <EmptyStateIcon>
-            <FaUsers />
-          </EmptyStateIcon>
-          <EmptyStateTitle>No Players Yet</EmptyStateTitle>
-          <EmptyStateMessage>
-            The roster is currently empty. Players will appear here once they're added to the team.
-          </EmptyStateMessage>
-          <EmptyStateAction to="/admin/login">
-            Admin Access
-          </EmptyStateAction>
-        </EmptyState>
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p style={{ color: '#2C2C2C' }}>No data available</p>
+        </div>
       </RosterContainer>
     );
   }

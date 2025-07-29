@@ -79,14 +79,7 @@ const LoadingMessage = styled.div`
   color: #c3ac83;
 `;
 
-const ErrorMessage = styled.div`
-  text-align: center;
-  padding: 2rem;
-  color: var(--error-color);
-  background: #FFEBEE;
-  border-radius: 8px;
-  margin: 2rem 0;
-`;
+
 
 const Highlights = () => {
   const [highlights, setHighlights] = useState([]);
@@ -98,9 +91,11 @@ const Highlights = () => {
       try {
         const response = await highlightsAPI.getAll();
         setHighlights(response.data);
+        setError(null);
       } catch (err) {
-        setError('Failed to load highlights');
         console.error('Error fetching highlights:', err);
+        // Don't show error banner for empty data
+        setHighlights([]);
       } finally {
         setLoading(false);
       }
@@ -111,10 +106,6 @@ const Highlights = () => {
 
   if (loading) {
     return <LoadingMessage>Loading highlights...</LoadingMessage>;
-  }
-
-  if (error) {
-    return <ErrorMessage>{error}</ErrorMessage>;
   }
 
   return (
@@ -152,7 +143,7 @@ const Highlights = () => {
       
       {highlights.length === 0 && (
         <div style={{ textAlign: 'center', padding: '3rem' }}>
-          <p style={{ color: '#c3ac83' }}>No highlights available.</p>
+          <p style={{ color: '#2C2C2C' }}>No data available</p>
         </div>
       )}
     </HighlightsContainer>
