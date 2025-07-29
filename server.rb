@@ -1447,14 +1447,32 @@ end
 # Health check
 get '/' do
   content_type :json
-  { status: 'ok', message: 'Peaks Baseball API is running!' }.to_json
+  begin
+    # Try to connect to database to verify it's working
+    db_connection.exec("SELECT 1")
+    { 
+      status: 'ok', 
+      message: 'Peaks Baseball API is running!',
+      database: 'connected'
+    }.to_json
+  rescue => e
+    # If database fails, still return OK but note the issue
+    { 
+      status: 'ok', 
+      message: 'Peaks Baseball API is running!',
+      database: 'disconnected',
+      error: e.message
+    }.to_json
+  end
 end
 
-puts "Starting Peaks Baseball API server on port 3001..."
-puts "API available at: http://localhost:3001"
-puts "Health check: http://localhost:3001/"
-puts "Players: http://localhost:3001/api/v1/players"
-puts "Games: http://localhost:3001/api/v1/games"
-puts "Stats: http://localhost:3001/api/v1/stats"
-puts "Highlights: http://localhost:3001/api/v1/highlights"
-puts "Roster: http://localhost:3001/api/v1/roster/stats" 
+puts "Starting Peaks Baseball API server on port #{ENV['PORT'] || 3001}..."
+puts "API available at: http://localhost:#{ENV['PORT'] || 3001}"
+puts "Health check: http://localhost:#{ENV['PORT'] || 3001}/"
+puts "Players: http://localhost:#{ENV['PORT'] || 3001}/api/v1/players"
+puts "Games: http://localhost:#{ENV['PORT'] || 3001}/api/v1/games"
+puts "Stats: http://localhost:#{ENV['PORT'] || 3001}/api/v1/stats"
+puts "Highlights: http://localhost:#{ENV['PORT'] || 3001}/api/v1/highlights"
+puts "Roster: http://localhost:#{ENV['PORT'] || 3001}/api/v1/roster/stats"
+puts "Environment: #{ENV['RACK_ENV'] || 'development'}"
+puts "Database URL: #{ENV['DATABASE_URL'] ? 'Set' : 'Not set'}" 
