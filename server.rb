@@ -108,6 +108,41 @@ def admin_users_exist?
   end
 end
 
+# Auto-create admin user if none exist (for production deployment)
+def create_default_admin
+  begin
+    # Only create if no admin users exist
+    if !admin_users_exist?
+      username = ENV['ADMIN_USERNAME'] || 'upeaksbaseball'
+      password = ENV['ADMIN_PASSWORD'] || '02Bud00!@!@'
+      email = ENV['ADMIN_EMAIL']
+      
+      puts "Creating default admin user: #{username}"
+      password_hash = BCrypt::Password.create(password)
+      
+      result = db_connection.exec("
+        INSERT INTO admin_users (username, password_hash, email, created_at, updated_at)
+        VALUES ($1, $2, $3, NOW(), NOW())
+        RETURNING id, username, email, created_at
+      ", [username, password_hash, email])
+      
+      admin_user = result.first
+      puts "✅ Default admin user created successfully!"
+      puts "   ID: #{admin_user['id']}"
+      puts "   Username: #{admin_user['username']}"
+      puts "   Email: #{admin_user['email'] || 'Not provided'}"
+      puts "   You can now log in at /admin/login"
+    else
+      puts "Admin users already exist, skipping default admin creation"
+    end
+  rescue => e
+    puts "Error creating default admin user: #{e.message}"
+  end
+end
+
+# Create default admin user on startup
+create_default_admin
+
 # Admin user creation endpoint (only works if no admin users exist)
 post '/api/v1/admin/setup' do
   content_type :json
