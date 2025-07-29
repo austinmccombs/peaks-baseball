@@ -1,7 +1,11 @@
-FROM ruby:2.5.0
+FROM ruby:2.5-slim
 
 # Install system dependencies
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -16,8 +20,8 @@ RUN bundle install
 COPY . .
 
 # Create a non-root user
-RUN useradd -m myuser && chown -R myuser:myuser /app
-USER myuser
+RUN useradd -m appuser
+USER appuser
 
 # Expose port
 EXPOSE 3001
