@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaUserShield, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
+import api from '../services/api';
 
 const SetupContainer = styled.div`
   min-height: 100vh;
@@ -177,11 +178,10 @@ const AdminSetup = () => {
     // Check if setup is needed
     const checkSetupStatus = async () => {
       try {
-        const response = await fetch('/api/v1/admin/setup-status');
-        const data = await response.json();
-        setSetupNeeded(data.setup_needed);
+        const response = await api.get('/api/v1/admin/setup-status');
+        setSetupNeeded(response.data.setup_needed);
         
-        if (!data.setup_needed) {
+        if (!response.data.setup_needed) {
           setError('Admin setup is not needed. Admin users already exist.');
         }
       } catch (err) {
@@ -199,30 +199,22 @@ const AdminSetup = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/v1/admin/setup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password,
-          email: email.trim()
-        }),
+      const response = await api.post('/api/v1/admin/setup', {
+        username: username.trim(),
+        password: password,
+        email: email.trim()
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         setSuccess('Admin user created successfully! You can now log in.');
         setTimeout(() => {
           navigate('/admin/login');
         }, 2000);
       } else {
-        setError(data.error || 'Failed to create admin user');
+        setError(response.data.error || 'Failed to create admin user');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(err.response?.data?.error || 'Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaLock, FaUser, FaUserShield } from 'react-icons/fa';
+import api from '../services/api';
 
 const LoginContainer = styled.div`
   min-height: 100vh;
@@ -155,9 +156,8 @@ const AdminLogin = () => {
     // Check if admin setup is needed
     const checkSetupStatus = async () => {
       try {
-        const response = await fetch('/api/v1/admin/setup-status');
-        const data = await response.json();
-        setSetupNeeded(data.setup_needed);
+        const response = await api.get('/api/v1/admin/setup-status');
+        setSetupNeeded(response.data.setup_needed);
       } catch (err) {
         console.error('Error checking setup status:', err);
       }
@@ -172,20 +172,12 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/v1/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password
-        }),
+      const response = await api.post('/api/v1/admin/login', {
+        username: username.trim(),
+        password: password
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         // Store admin session
         localStorage.setItem('adminAuthenticated', 'true');
         localStorage.setItem('adminUsername', username.trim());
@@ -193,10 +185,10 @@ const AdminLogin = () => {
         window.dispatchEvent(new Event('localStorageChange'));
         navigate('/admin');
       } else {
-        setError(data.error || 'Invalid credentials. Please try again.');
+        setError(response.data.error || 'Invalid credentials. Please try again.');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(err.response?.data?.error || 'Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
