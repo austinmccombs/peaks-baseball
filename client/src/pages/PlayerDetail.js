@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FaBaseballBall, FaVideo, FaChartBar, FaCalendar } from 'react-icons/fa';
 import ReactPlayer from 'react-player';
 import { playersAPI } from '../services/api';
+import SortableTable from '../components/SortableTable';
 
 const PlayerDetailContainer = styled.div`
   padding: 2rem 0;
@@ -106,27 +107,6 @@ const StatLabel = styled.div`
   font-size: 0.9rem;
 `;
 
-const GameLogTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-`;
-
-const GameLogHeader = styled.th`
-  background: #2C2C2C;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #c3ac83;
-  border-bottom: 1px solid #c3ac83;
-`;
-
-const GameLogCell = styled.td`
-  padding: 1rem;
-  border-bottom: 1px solid #c3ac83;
-  color: #c3ac83;
-`;
-
 const HighlightsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -201,6 +181,16 @@ const PlayerDetail = () => {
     fetchPlayer();
   }, [id]);
 
+  const gameLogColumns = [
+    { key: 'game.short_date', label: 'Date' },
+    { key: 'game.opponent', label: 'Opponent' },
+    { key: 'at_bats', label: 'AB' },
+    { key: 'hits', label: 'H' },
+    { key: 'runs_scored', label: 'R' },
+    { key: 'runs_batted_in', label: 'RBI' },
+    { key: 'batting_average', label: 'AVG' }
+  ];
+
   if (loading) {
     return <LoadingMessage>Loading player data...</LoadingMessage>;
   }
@@ -256,32 +246,12 @@ const PlayerDetail = () => {
         {player.stats && player.stats.length > 0 && (
           <div>
             <h3>Game Log</h3>
-            <GameLogTable>
-              <thead>
-                <tr>
-                  <GameLogHeader>Date</GameLogHeader>
-                  <GameLogHeader>Opponent</GameLogHeader>
-                  <GameLogHeader>AB</GameLogHeader>
-                  <GameLogHeader>H</GameLogHeader>
-                  <GameLogHeader>R</GameLogHeader>
-                  <GameLogHeader>RBI</GameLogHeader>
-                  <GameLogHeader>AVG</GameLogHeader>
-                </tr>
-              </thead>
-              <tbody>
-                {player.stats.map((stat) => (
-                  <tr key={stat.id}>
-                    <GameLogCell>{stat.game?.short_date}</GameLogCell>
-                    <GameLogCell>{stat.game?.opponent}</GameLogCell>
-                    <GameLogCell>{stat.at_bats}</GameLogCell>
-                    <GameLogCell>{stat.hits}</GameLogCell>
-                    <GameLogCell>{stat.runs_scored}</GameLogCell>
-                    <GameLogCell>{stat.runs_batted_in}</GameLogCell>
-                    <GameLogCell>{stat.batting_average}</GameLogCell>
-                  </tr>
-                ))}
-              </tbody>
-            </GameLogTable>
+            <SortableTable
+              data={player.stats}
+              columns={gameLogColumns}
+              defaultSort="game.short_date"
+              defaultSortDirection="desc"
+            />
           </div>
         )}
       </div>

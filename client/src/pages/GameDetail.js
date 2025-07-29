@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FaBaseballBall, FaCalendar, FaMapMarkerAlt } from 'react-icons/fa';
 import { gamesAPI } from '../services/api';
 import AddGameStats from '../components/AddGameStats';
+import SortableTable from '../components/SortableTable';
 
 const GameDetailContainer = styled.div`
   padding: 2rem 0;
@@ -77,26 +78,6 @@ const SectionTitle = styled.h2`
   margin-bottom: 1.5rem;
 `;
 
-const StatsTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TableHeader = styled.th`
-  background: #2C2C2C;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #c3ac83;
-  border-bottom: 1px solid #c3ac83;
-`;
-
-const TableCell = styled.td`
-  padding: 1rem;
-  border-bottom: 1px solid #c3ac83;
-  color: #c3ac83;
-`;
-
 const LoadingMessage = styled.div`
   text-align: center;
   padding: 3rem;
@@ -145,6 +126,15 @@ const GameDetail = () => {
     fetchGame();
   };
 
+  const gameStatsColumns = [
+    { key: 'player.full_name', label: 'Player' },
+    { key: 'at_bats', label: 'AB' },
+    { key: 'hits', label: 'H' },
+    { key: 'runs_scored', label: 'R' },
+    { key: 'runs_batted_in', label: 'RBI' },
+    { key: 'batting_average', label: 'AVG' }
+  ];
+
   if (loading) {
     return <LoadingMessage>Loading game data...</LoadingMessage>;
   }
@@ -176,30 +166,12 @@ const GameDetail = () => {
       <StatsSection>
         <SectionTitle>Player Statistics</SectionTitle>
         {stats.length > 0 ? (
-          <StatsTable>
-            <thead>
-              <tr>
-                <TableHeader>Player</TableHeader>
-                <TableHeader>AB</TableHeader>
-                <TableHeader>H</TableHeader>
-                <TableHeader>R</TableHeader>
-                <TableHeader>RBI</TableHeader>
-                <TableHeader>AVG</TableHeader>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.map((stat) => (
-                <tr key={stat.id}>
-                  <TableCell>{stat.player?.full_name}</TableCell>
-                  <TableCell>{stat.at_bats}</TableCell>
-                  <TableCell>{stat.hits}</TableCell>
-                  <TableCell>{stat.runs_scored}</TableCell>
-                  <TableCell>{stat.runs_batted_in}</TableCell>
-                  <TableCell>{stat.batting_average}</TableCell>
-                </tr>
-              ))}
-            </tbody>
-          </StatsTable>
+          <SortableTable
+            data={stats}
+            columns={gameStatsColumns}
+            defaultSort="player.full_name"
+            defaultSortDirection="asc"
+          />
         ) : (
           <p style={{ color: '#c3ac83' }}>No statistics available for this game.</p>
         )}
