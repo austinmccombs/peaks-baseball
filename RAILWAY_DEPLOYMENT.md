@@ -4,17 +4,21 @@
 
 ### 1. Docker Base Image
 **Problem**: Using outdated `ruby:2.5-slim` based on Debian buster (end-of-life)
-**Solution**: Updated to `ruby:3.2-slim` with current Debian version
+**Solution**: Updated to `ruby:3.2.0-slim` with current Debian version
 
 ### 2. Ruby Version Compatibility
-**Problem**: Gemfile specified Ruby 2.5.0
-**Solution**: Updated to Ruby 3.2.0 for compatibility
+**Problem**: Gemfile specified Ruby 2.5.0, Gemfile.lock had old bundler version
+**Solution**: Updated to Ruby 3.2.0 and regenerated Gemfile.lock
+
+### 3. Bundler Version Mismatch
+**Problem**: Gemfile.lock was generated with bundler 2.2.3 but Docker has 2.4.19
+**Solution**: Regenerate Gemfile.lock with current bundler
 
 ## Updated Files
 
 ### Dockerfile
 ```dockerfile
-FROM ruby:3.2-slim
+FROM ruby:3.2.0-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -62,27 +66,39 @@ CMD ["ruby", "server.rb"]
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.2.0'
+ruby '~> 3.2.0'
 # ... rest of gems
 ```
 
 ## Deployment Steps
 
-### 1. Commit Changes
+### 1. Regenerate Gemfile.lock (IMPORTANT!)
+```bash
+# Remove old Gemfile.lock
+rm Gemfile.lock
+
+# Install bundler if needed
+gem install bundler
+
+# Generate new Gemfile.lock with current Ruby version
+bundle install
+```
+
+### 2. Commit Changes
 ```bash
 git add .
-git commit -m "Fix Docker deployment for Railway"
+git commit -m "Fix Docker deployment for Railway - update Ruby version and regenerate Gemfile.lock"
 git push origin main
 ```
 
-### 2. Railway Deployment
+### 3. Railway Deployment
 1. Connect your GitHub repository to Railway
 2. Railway will automatically detect the Dockerfile
 3. Set environment variables:
    - `DATABASE_URL`: Your PostgreSQL connection string
    - `PORT`: 3001 (or let Railway set it automatically)
 
-### 3. Environment Variables
+### 4. Environment Variables
 Make sure to set these in Railway:
 - `DATABASE_URL`: PostgreSQL connection string
 - `RAILS_ENV`: production
@@ -90,9 +106,9 @@ Make sure to set these in Railway:
 
 ## Expected Build Process
 
-1. **Base Image**: Uses current Ruby 3.2 with Debian
+1. **Base Image**: Uses Ruby 3.2.0 with current Debian
 2. **Dependencies**: Installs build tools, PostgreSQL dev, Node.js
-3. **Ruby Gems**: Installs all required gems
+3. **Ruby Gems**: Installs all required gems with compatible bundler
 4. **Node.js**: Installs client dependencies and builds React app
 5. **Security**: Runs as non-root user
 6. **Startup**: Runs `ruby server.rb`
@@ -103,8 +119,11 @@ Make sure to set these in Railway:
 1. Check Railway logs for specific error messages
 2. Verify all environment variables are set
 3. Ensure database is accessible from Railway
+4. Make sure Gemfile.lock was regenerated with current Ruby version
 
 ### Common Issues
+- **Bundler Version**: Ensure Gemfile.lock is regenerated with current bundler
+- **Ruby Version**: Use `~> 3.2.0` for flexibility
 - **Database Connection**: Make sure `DATABASE_URL` is set correctly
 - **Port Binding**: Railway will set `PORT` environment variable
 - **Build Timeout**: Large builds might timeout; consider optimizing

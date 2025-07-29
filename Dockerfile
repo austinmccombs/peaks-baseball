@@ -1,4 +1,4 @@
-FROM ruby:3.2-slim
+FROM ruby:3.2.0-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,6 +13,9 @@ WORKDIR /app
 
 # Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
+
+# Install bundler version that matches Gemfile.lock
+RUN gem install bundler -v 2.2.3
 
 # Install Ruby gems
 RUN bundle install

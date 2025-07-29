@@ -8,7 +8,7 @@ GEM
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.3)
     pg (1.5.9)
-    puma (4.3.12)
+    puma (6.6.0)
       nio4r (~> 2.0)
     rack (2.2.17)
     rack-protection (2.2.4)
