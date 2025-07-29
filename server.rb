@@ -83,6 +83,30 @@ end
 # Initialize the admin users table on startup
 init_admin_users_table
 
+# Initialize main database tables if they don't exist
+def init_main_tables
+  begin
+    # Check if players table exists
+    result = db_connection.exec("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'players')")
+    if result.first['exists'] == 'f'
+      puts "Setting up main database tables..."
+      
+      # Read and execute the setup SQL
+      sql_content = File.read('setup_database.sql')
+      db_connection.exec(sql_content)
+      
+      puts "✅ Main database tables created successfully!"
+    else
+      puts "Main database tables already exist"
+    end
+  rescue => e
+    puts "Error initializing main tables: #{e.message}"
+  end
+end
+
+# Initialize main tables on startup
+init_main_tables
+
 # Admin authentication helper
 def authenticate_admin(username, password)
   begin
