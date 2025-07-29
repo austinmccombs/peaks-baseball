@@ -200,9 +200,11 @@ const Games = () => {
       try {
         const response = await gamesAPI.getAll();
         setGames(response.data);
+        setError(null);
       } catch (err) {
-        setError('Failed to load games data');
         console.error('Error fetching games:', err);
+        // Don't show error banner for empty data
+        setGames([]);
       } finally {
         setLoading(false);
       }
@@ -213,10 +215,6 @@ const Games = () => {
 
   if (loading) {
     return <LoadingMessage>Loading games...</LoadingMessage>;
-  }
-
-  if (error) {
-    return <ErrorMessage>{error}</ErrorMessage>;
   }
 
   const record = calculateRecord();
@@ -271,8 +269,8 @@ const Games = () => {
       </GamesGrid>
       
       {games.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem' }}>
-          <p>No games found.</p>
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#c3ac83' }}>
+          <p>No games scheduled yet.</p>
         </div>
       )}
     </GamesContainer>

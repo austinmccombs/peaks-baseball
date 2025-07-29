@@ -207,12 +207,8 @@ const Roster = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching players:', err);
-        // Don't set error for empty roster - just set empty array
-        if (err.response && err.response.status === 404) {
-          setPlayers([]);
-        } else {
-          setError('Failed to load roster data');
-        }
+        // Don't show error banner for empty data
+        setPlayers([]);
       } finally {
         setLoading(false);
       }
@@ -223,10 +219,6 @@ const Roster = () => {
 
   if (loading) {
     return <LoadingMessage>Loading roster...</LoadingMessage>;
-  }
-
-  if (error) {
-    return <ErrorMessage>{error}</ErrorMessage>;
   }
 
   // Show empty state when no players

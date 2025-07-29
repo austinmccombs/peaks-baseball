@@ -58,9 +58,11 @@ const Stats = () => {
       try {
         const response = await statsAPI.getSeasonStats(2024);
         setSeasonStats(response.data);
+        setError(null);
       } catch (err) {
-        setError('Failed to load statistics');
         console.error('Error fetching stats:', err);
+        // Don't show error banner for empty data
+        setSeasonStats({ batting_leaders: [], pitching_leaders: [] });
       } finally {
         setLoading(false);
       }
@@ -93,39 +95,46 @@ const Stats = () => {
     return <LoadingMessage>Loading statistics...</LoadingMessage>;
   }
 
-  if (error) {
-    return <ErrorMessage>{error}</ErrorMessage>;
-  }
-
   return (
     <StatsContainer>
       <PageTitle>Team Statistics</PageTitle>
       
-      <StatsSection>
-        <SectionTitle>
-          <FaChartBar style={{ marginRight: '0.5rem' }} />
-          Batting Leaders
-        </SectionTitle>
-        <SortableTable
-          data={seasonStats.batting_leaders || []}
-          columns={battingColumns}
-          defaultSort="batting_average"
-          defaultSortDirection="desc"
-        />
-      </StatsSection>
+      {seasonStats.batting_leaders && seasonStats.batting_leaders.length > 0 && (
+        <StatsSection>
+          <SectionTitle>
+            <FaChartBar style={{ marginRight: '0.5rem' }} />
+            Batting Leaders
+          </SectionTitle>
+          <SortableTable
+            data={seasonStats.batting_leaders}
+            columns={battingColumns}
+            defaultSort="batting_average"
+            defaultSortDirection="desc"
+          />
+        </StatsSection>
+      )}
 
-      <StatsSection>
-        <SectionTitle>
-          <FaTrophy style={{ marginRight: '0.5rem' }} />
-          Pitching Leaders
-        </SectionTitle>
-        <SortableTable
-          data={seasonStats.pitching_leaders || []}
-          columns={pitchingColumns}
-          defaultSort="era"
-          defaultSortDirection="asc"
-        />
-      </StatsSection>
+      {seasonStats.pitching_leaders && seasonStats.pitching_leaders.length > 0 && (
+        <StatsSection>
+          <SectionTitle>
+            <FaTrophy style={{ marginRight: '0.5rem' }} />
+            Pitching Leaders
+          </SectionTitle>
+          <SortableTable
+            data={seasonStats.pitching_leaders}
+            columns={pitchingColumns}
+            defaultSort="era"
+            defaultSortDirection="asc"
+          />
+        </StatsSection>
+      )}
+
+      {(!seasonStats.batting_leaders || seasonStats.batting_leaders.length === 0) && 
+       (!seasonStats.pitching_leaders || seasonStats.pitching_leaders.length === 0) && (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#c3ac83' }}>
+          <p>No statistics available yet.</p>
+        </div>
+      )}
     </StatsContainer>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaBaseballBall, FaUsers, FaVideo, FaSpinner } from 'react-icons/fa';
-import { playersAPI, highlightsAPI } from '../services/api';
+import { playersAPI, highlightsAPI, gamesAPI } from '../services/api';
 import Logo from '../components/Logo';
 
 const HomeContainer = styled.div`
@@ -193,7 +193,7 @@ const WidgetContainer = styled.div`
 const Home = () => {
   const [stats, setStats] = useState({
     players: 0,
-    games: 0,
+    record: { wins: 0, losses: 0 },
     highlights: 0
   });
   const [recentHighlights, setRecentHighlights] = useState([]);
@@ -204,14 +204,26 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [playersResponse, highlightsResponse] = await Promise.all([
+        const [playersResponse, highlightsResponse, gamesResponse] = await Promise.all([
           playersAPI.getAll(),
-          highlightsAPI.getAll()
+          highlightsAPI.getAll(),
+          gamesAPI.getAll()
         ]);
+
+        // Calculate team record
+        let wins = 0;
+        let losses = 0;
+        gamesResponse.data.forEach(game => {
+          if (game.game_result === 'W') {
+            wins++;
+          } else if (game.game_result === 'L') {
+            losses++;
+          }
+        });
 
         setStats({
           players: playersResponse.data.length,
-          games: 0, // This would need to be fetched from games API
+          record: { wins, losses },
           highlights: highlightsResponse.data.length
         });
 
@@ -345,8 +357,8 @@ const Home = () => {
             <StatIcon>
               <FaBaseballBall />
             </StatIcon>
-            <StatNumber>{stats.games}</StatNumber>
-            <StatLabel>Games</StatLabel>
+            <StatNumber>{stats.record.wins}-{stats.record.losses}</StatNumber>
+            <StatLabel>Record</StatLabel>
           </StatCard>
           
           <StatCard>
