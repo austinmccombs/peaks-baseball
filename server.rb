@@ -9,6 +9,9 @@ require 'pg'
 set :port, ENV['PORT'] || 3001
 set :bind, '0.0.0.0'
 
+# Serve static files from the client build directory
+set :public_folder, File.join(File.dirname(__FILE__), 'client', 'build')
+
 # Enable CORS
 configure do
   enable :cross_origin
@@ -27,6 +30,15 @@ options "*" do
   response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept, X-User-Email, X-Auth-Token"
   response.headers["Access-Control-Allow-Origin"] = "*"
   200
+end
+
+# Serve React app for all non-API routes
+get '/*' do
+  # Don't serve React app for API routes
+  pass if request.path_info.start_with?('/api/')
+  
+  # Serve index.html for all other routes (React Router)
+  send_file File.join(settings.public_folder, 'index.html')
 end
 
 # Database connection

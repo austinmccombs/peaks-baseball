@@ -25,6 +25,8 @@ COPY . .
 
 # Install Node.js dependencies for the client
 WORKDIR /app/client
+
+# Install npm dependencies
 RUN npm install
 
 # Build the React app
@@ -35,6 +37,11 @@ WORKDIR /app
 
 # Create a non-root user
 RUN useradd -m appuser
+
+# Change ownership of the entire app to appuser
+RUN chown -R appuser:appuser /app
+
+# Switch to appuser
 USER appuser
 
 # Expose port
