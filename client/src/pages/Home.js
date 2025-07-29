@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaBaseballBall, FaUsers, FaVideo } from 'react-icons/fa';
+import { FaBaseballBall, FaUsers, FaVideo, FaSpinner } from 'react-icons/fa';
 import { playersAPI, highlightsAPI } from '../services/api';
 import Logo from '../components/Logo';
 
@@ -153,6 +153,41 @@ const ScoreboardWidget = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #2C2C2C;
+  border-radius: 8px;
+  padding: 2rem;
+`;
+
+const LoadingSpinner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #c3ac83;
+  font-size: 1.1rem;
+  
+  svg {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const WidgetError = styled.div`
+  text-align: center;
+  color: #c3ac83;
+  opacity: 0.8;
+  font-size: 1rem;
+`;
+
+const WidgetContainer = styled.div`
+  width: 100%;
+  max-width: 800px;
 `;
 
 const Home = () => {
@@ -163,6 +198,8 @@ const Home = () => {
   });
   const [recentHighlights, setRecentHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [widgetLoading, setWidgetLoading] = useState(true);
+  const [widgetError, setWidgetError] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -189,36 +226,99 @@ const Home = () => {
     fetchData();
   }, []);
 
-  // Load GameChanger widget script
+  // Optimized GameChanger widget loading
   useEffect(() => {
-    const loadGameChangerScript = () => {
-      // Check if script is already loaded
-      if (window.GC) {
-        window.GC.team.schedule.init({
-          target: "#gc-schedule-widget-0uxd",
-          widgetId: "b5a8a24c-489d-42df-9440-3e6c12ebce1d",
-          maxVerticalGamesVisible: 4,
-        });
-        return;
-      }
+    let scriptLoaded = false;
+    let timeoutId;
 
-      // Load the script
-      const script = document.createElement('script');
-      script.src = 'https://widgets.gc.com/static/js/sdk.v1.js';
-      script.onload = () => {
-        // Initialize the widget once script is loaded
+    const loadGameChangerScript = async () => {
+      try {
+        // Check if script is already loaded
         if (window.GC) {
+          initializeWidget();
+          return;
+        }
+
+        // Check if script is already being loaded
+        if (document.querySelector('script[src*="widgets.gc.com"]')) {
+          // Wait for existing script to load
+          const checkInterval = setInterval(() => {
+            if (window.GC) {
+              clearInterval(checkInterval);
+              initializeWidget();
+            }
+          }, 100);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            setWidgetError(true);
+            setWidgetLoading(false);
+          }, 10000);
+          return;
+        }
+
+        // Load the script with timeout
+        const script = document.createElement('script');
+        script.src = 'https://widgets.gc.com/static/js/sdk.v1.js';
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+          scriptLoaded = true;
+          initializeWidget();
+        };
+        
+        script.onerror = () => {
+          setWidgetError(true);
+          setWidgetLoading(false);
+        };
+
+        // Set timeout for script loading
+        timeoutId = setTimeout(() => {
+          if (!scriptLoaded) {
+            setWidgetError(true);
+            setWidgetLoading(false);
+          }
+        }, 8000); // 8 second timeout
+
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error loading GameChanger widget:', error);
+        setWidgetError(true);
+        setWidgetLoading(false);
+      }
+    };
+
+    const initializeWidget = () => {
+      try {
+        if (window.GC && window.GC.team && window.GC.team.schedule) {
           window.GC.team.schedule.init({
             target: "#gc-schedule-widget-0uxd",
             widgetId: "b5a8a24c-489d-42df-9440-3e6c12ebce1d",
             maxVerticalGamesVisible: 4,
           });
+          setWidgetLoading(false);
+        } else {
+          setWidgetError(true);
+          setWidgetLoading(false);
         }
-      };
-      document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error initializing GameChanger widget:', error);
+        setWidgetError(true);
+        setWidgetLoading(false);
+      }
     };
 
-    loadGameChangerScript();
+    // Load widget after a short delay to prioritize main content
+    const widgetTimer = setTimeout(() => {
+      loadGameChangerScript();
+    }, 1000);
+
+    return () => {
+      clearTimeout(widgetTimer);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   if (loading) {
@@ -263,7 +363,24 @@ const Home = () => {
         <ScoreboardSection>
           <ScoreboardTitle>Live Schedule & Scores</ScoreboardTitle>
           <ScoreboardWidget>
-            <div id="gc-schedule-widget-0uxd"></div>
+            <WidgetContainer>
+              {widgetLoading && (
+                <LoadingSpinner>
+                  <FaSpinner />
+                  Loading schedule...
+                </LoadingSpinner>
+              )}
+              {widgetError && (
+                <WidgetError>
+                  Schedule widget temporarily unavailable.
+                  <br />
+                  <a href="https://gc.com" target="_blank" rel="noopener noreferrer" style={{ color: '#c3ac83', textDecoration: 'underline' }}>
+                    View on GameChanger
+                  </a>
+                </WidgetError>
+              )}
+              <div id="gc-schedule-widget-0uxd" style={{ display: widgetLoading || widgetError ? 'none' : 'block' }}></div>
+            </WidgetContainer>
           </ScoreboardWidget>
         </ScoreboardSection>
       </Section>
