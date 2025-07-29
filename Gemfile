@@ -14,6 +14,9 @@ gem 'pg', '>= 0.18', '< 2.0'
 # JSON handling
 gem 'json'
 
+# Password hashing for admin authentication
+gem 'bcrypt'
+
 # Development gems
 group :development do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]

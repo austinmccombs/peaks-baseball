@@ -4,6 +4,7 @@ require 'sinatra'
 require 'sinatra/cross_origin'
 require 'json'
 require 'pg'
+require 'bcrypt'
 
 puts "=== Starting Peaks Baseball API ==="
 puts "Ruby version: #{RUBY_VERSION}"
@@ -58,6 +59,140 @@ def db_connection
       PG.connect(dbname: 'peaks_baseball_development')
     end
   end
+end
+
+# Initialize admin users table if it doesn't exist
+def init_admin_users_table
+  begin
+    db_connection.exec("
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    ")
+    puts "Admin users table initialized"
+  rescue => e
+    puts "Error initializing admin users table: #{e.message}"
+  end
+end
+
+# Initialize the admin users table on startup
+init_admin_users_table
+
+# Admin authentication helper
+def authenticate_admin(username, password)
+  begin
+    result = db_connection.exec("SELECT password_hash FROM admin_users WHERE username = $1", [username])
+    return false if result.ntuples == 0
+    
+    stored_hash = result.first['password_hash']
+    BCrypt::Password.new(stored_hash) == password
+  rescue => e
+    puts "Authentication error: #{e.message}"
+    false
+  end
+end
+
+# Check if any admin users exist
+def admin_users_exist?
+  begin
+    result = db_connection.exec("SELECT COUNT(*) as count FROM admin_users")
+    result.first['count'].to_i > 0
+  rescue => e
+    puts "Error checking admin users: #{e.message}"
+    false
+  end
+end
+
+# Admin user creation endpoint (only works if no admin users exist)
+post '/api/v1/admin/setup' do
+  content_type :json
+  
+  # Only allow setup if no admin users exist
+  if admin_users_exist?
+    status 403
+    return { error: 'Admin setup is disabled. Admin users already exist.' }.to_json
+  end
+  
+  begin
+    data = JSON.parse(request.body.read)
+    username = data['username']
+    password = data['password']
+    email = data['email']
+    
+    # Validate input
+    if username.nil? || password.nil? || username.strip.empty? || password.strip.empty?
+      status 400
+      return { error: 'Username and password are required' }.to_json
+    end
+    
+    if password.length < 8
+      status 400
+      return { error: 'Password must be at least 8 characters long' }.to_json
+    end
+    
+    # Hash the password
+    password_hash = BCrypt::Password.create(password)
+    
+    # Create the admin user
+    result = db_connection.exec("
+      INSERT INTO admin_users (username, password_hash, email, created_at, updated_at)
+      VALUES ($1, $2, $3, NOW(), NOW())
+      RETURNING id, username, email, created_at
+    ", [username.strip, password_hash, email&.strip])
+    
+    admin_user = result.first
+    {
+      id: admin_user['id'].to_i,
+      username: admin_user['username'],
+      email: admin_user['email'],
+      created_at: admin_user['created_at'],
+      message: 'Admin user created successfully'
+    }.to_json
+    
+  rescue => e
+    status 422
+    { error: e.message }.to_json
+  end
+end
+
+# Admin login endpoint
+post '/api/v1/admin/login' do
+  content_type :json
+  
+  begin
+    data = JSON.parse(request.body.read)
+    username = data['username']
+    password = data['password']
+    
+    if authenticate_admin(username, password)
+      {
+        success: true,
+        message: 'Login successful',
+        username: username
+      }.to_json
+    else
+      status 401
+      { error: 'Invalid credentials' }.to_json
+    end
+  rescue => e
+    status 422
+    { error: e.message }.to_json
+  end
+end
+
+# Check if admin setup is needed
+get '/api/v1/admin/setup-status' do
+  content_type :json
+  
+  {
+    setup_needed: !admin_users_exist?,
+    message: admin_users_exist? ? 'Admin users exist' : 'No admin users found. Setup required.'
+  }.to_json
 end
 
 # Players API

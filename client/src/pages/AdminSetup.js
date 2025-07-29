@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaLock, FaUser, FaUserShield } from 'react-icons/fa';
+import { FaUserShield, FaLock, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
 
-const LoginContainer = styled.div`
+const SetupContainer = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -12,25 +12,25 @@ const LoginContainer = styled.div`
   background: linear-gradient(135deg, #c3ac83 0%, #b5a075 100%);
 `;
 
-const LoginCard = styled.div`
+const SetupCard = styled.div`
   background: #2C2C2C;
   border-radius: 12px;
   padding: 3rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 2px solid #c3ac83;
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
 `;
 
-const LoginTitle = styled.h1`
+const SetupTitle = styled.h1`
   color: #c3ac83;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 2rem;
   font-weight: bold;
 `;
 
-const LoginSubtitle = styled.p`
+const SetupSubtitle = styled.p`
   color: #c3ac83;
   text-align: center;
   margin-bottom: 2rem;
@@ -79,7 +79,7 @@ const InputIcon = styled.div`
   opacity: 0.7;
 `;
 
-const LoginButton = styled.button`
+const SetupButton = styled.button`
   background: #c3ac83;
   color: #2C2C2C;
   border: none;
@@ -109,21 +109,41 @@ const ErrorMessage = styled.div`
   font-size: 0.9rem;
 `;
 
-const SetupLink = styled.div`
+const SuccessMessage = styled.div`
+  color: #4CAF50;
   text-align: center;
   margin-top: 1rem;
-  
-  a {
-    color: #c3ac83;
-    text-decoration: none;
-    font-size: 0.9rem;
-    opacity: 0.8;
-    
-    &:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-  }
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+`;
+
+const PasswordRequirements = styled.div`
+  background: #1a1a1a;
+  border: 1px solid #c3ac83;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+`;
+
+const RequirementTitle = styled.h4`
+  color: #c3ac83;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+`;
+
+const RequirementList = styled.ul`
+  color: #c3ac83;
+  opacity: 0.8;
+  font-size: 0.8rem;
+  margin: 0;
+  padding-left: 1.5rem;
+`;
+
+const RequirementItem = styled.li`
+  margin-bottom: 0.25rem;
 `;
 
 const BackLink = styled.div`
@@ -143,21 +163,27 @@ const BackLink = styled.div`
   }
 `;
 
-const AdminLogin = () => {
+const AdminSetup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [setupNeeded, setSetupNeeded] = useState(false);
+  const [setupNeeded, setSetupNeeded] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if admin setup is needed
+    // Check if setup is needed
     const checkSetupStatus = async () => {
       try {
         const response = await fetch('/api/v1/admin/setup-status');
         const data = await response.json();
         setSetupNeeded(data.setup_needed);
+        
+        if (!data.setup_needed) {
+          setError('Admin setup is not needed. Admin users already exist.');
+        }
       } catch (err) {
         console.error('Error checking setup status:', err);
       }
@@ -169,31 +195,31 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/v1/admin/login', {
+      const response = await fetch('/api/v1/admin/setup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           username: username.trim(),
-          password: password
+          password: password,
+          email: email.trim()
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Store admin session
-        localStorage.setItem('adminAuthenticated', 'true');
-        localStorage.setItem('adminUsername', username.trim());
-        // Dispatch custom event to notify header of login
-        window.dispatchEvent(new Event('localStorageChange'));
-        navigate('/admin');
+        setSuccess('Admin user created successfully! You can now log in.');
+        setTimeout(() => {
+          navigate('/admin/login');
+        }, 2000);
       } else {
-        setError(data.error || 'Invalid credentials. Please try again.');
+        setError(data.error || 'Failed to create admin user');
       }
     } catch (err) {
       setError('Network error. Please try again.');
@@ -202,26 +228,34 @@ const AdminLogin = () => {
     }
   };
 
+  if (!setupNeeded) {
+    return (
+      <SetupContainer>
+        <SetupCard>
+          <SetupTitle>Setup Not Needed</SetupTitle>
+          <SetupSubtitle>
+            Admin users already exist. Please use the login page instead.
+          </SetupSubtitle>
+          <BackLink>
+            <a href="/admin/login">Go to Admin Login</a>
+          </BackLink>
+        </SetupCard>
+      </SetupContainer>
+    );
+  }
+
   return (
-    <LoginContainer>
-      <LoginCard>
-        <LoginTitle>Admin Access</LoginTitle>
-        <LoginSubtitle>
-          Enter your credentials to access the team management panel
-        </LoginSubtitle>
-        
-        {setupNeeded && (
-          <SetupLink>
-            <a href="/admin/setup">
-              <FaUserShield /> First time setup - Create admin user
-            </a>
-          </SetupLink>
-        )}
+    <SetupContainer>
+      <SetupCard>
+        <SetupTitle>Admin Setup</SetupTitle>
+        <SetupSubtitle>
+          Create the first admin user for the Peaks Baseball team management system
+        </SetupSubtitle>
         
         <Form onSubmit={handleSubmit}>
           <InputGroup>
             <InputIcon>
-              <FaUser />
+              <FaUserShield />
             </InputIcon>
             <Input
               type="text"
@@ -245,19 +279,46 @@ const AdminLogin = () => {
             />
           </InputGroup>
           
-          <LoginButton type="submit" disabled={isLoading}>
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </LoginButton>
+          <InputGroup>
+            <InputIcon>
+              <FaEnvelope />
+            </InputIcon>
+            <Input
+              type="email"
+              placeholder="Email (optional)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </InputGroup>
+          
+          <PasswordRequirements>
+            <RequirementTitle>Password Requirements:</RequirementTitle>
+            <RequirementList>
+              <RequirementItem>At least 8 characters long</RequirementItem>
+              <RequirementItem>Choose a strong, secure password</RequirementItem>
+              <RequirementItem>This will be your admin login credentials</RequirementItem>
+            </RequirementList>
+          </PasswordRequirements>
+          
+          <SetupButton type="submit" disabled={isLoading}>
+            {isLoading ? 'Creating Admin User...' : 'Create Admin User'}
+          </SetupButton>
         </Form>
         
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        {success && (
+          <SuccessMessage>
+            <FaCheckCircle />
+            {success}
+          </SuccessMessage>
+        )}
         
         <BackLink>
           <a href="/">← Back to Home</a>
         </BackLink>
-      </LoginCard>
-    </LoginContainer>
+      </SetupCard>
+    </SetupContainer>
   );
 };
 
-export default AdminLogin; 
+export default AdminSetup; 

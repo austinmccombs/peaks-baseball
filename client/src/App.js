@@ -12,6 +12,7 @@ import Stats from './pages/Stats';
 import Highlights from './pages/Highlights';
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
+import AdminSetup from './pages/AdminSetup';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const AppContainer = styled.div`
@@ -41,6 +42,7 @@ function App() {
               <Route path="/game/:id" element={<GameDetail />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/highlights" element={<Highlights />} />
+              <Route path="/admin/setup" element={<AdminSetup />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             </Routes>
