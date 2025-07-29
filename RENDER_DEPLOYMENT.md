@@ -1,15 +1,16 @@
 # Peaks Baseball - Render Deployment Guide
 
-This guide will help you deploy your Peaks Baseball site on Render with your custom domain from GoDaddy.
+This guide will help you deploy your Peaks Baseball site entirely on Render with your custom domain from GoDaddy.
 
-## **Why Render is Better:**
-- ✅ **More reliable** than Railway
+## **Why Render for Everything:**
+- ✅ **Single platform** - easier to manage
+- ✅ **Free static hosting** for React app
 - ✅ **Free PostgreSQL database** included
 - ✅ **Automatic HTTPS** and custom domains
-- ✅ **Better documentation** and support
+- ✅ **Better reliability** than Railway
 - ✅ **Simpler deployment** process
 
-## **Step 1: Deploy Backend to Render**
+## **Step 1: Deploy Both Services to Render**
 
 ### **1.1 Create Render Account**
 1. Go to [Render.com](https://render.com)
@@ -21,84 +22,49 @@ This guide will help you deploy your Peaks Baseball site on Render with your cus
 2. Render will detect the `render.yaml` configuration
 3. Click **"Connect"**
 
-### **1.3 Configure Services**
-Render will automatically create:
-- **Web Service** (your API)
-- **PostgreSQL Database** (your data)
+### **1.3 Services Created Automatically**
+Render will create:
+- **Backend API** (`peaks-baseball-api`) - your Sinatra server
+- **Frontend App** (`peaks-baseball-frontend`) - your React app
+- **PostgreSQL Database** (add manually)
 
-### **1.4 Environment Variables**
-Render will automatically set:
-- `DATABASE_URL` (from the PostgreSQL service)
-- `RACK_ENV=production`
-- `PORT=10000`
+### **1.4 Add PostgreSQL Database**
+1. In Render dashboard, click **"New +"**
+2. Select **"PostgreSQL"**
+3. Name it `peaks-baseball-db`
+4. Choose **Free** plan
+5. Click **"Create Database"**
 
-## **Step 2: Deploy Frontend to Vercel**
+### **1.5 Connect Database to API**
+1. Go to your `peaks-baseball-api` service settings
+2. Add environment variable: `DATABASE_URL`
+3. Copy the database URL from your PostgreSQL service
 
-### **2.1 Deploy to Vercel**
-1. Go to [Vercel.com](https://vercel.com)
-2. Import your GitHub repository
-3. Configure:
-   - **Framework Preset**: Create React App
-   - **Root Directory**: `client`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
+## **Step 2: Configure Custom Domain**
 
-### **2.2 Set Environment Variables**
-In Vercel project settings, add:
-- `REACT_APP_API_URL` = your Render backend URL (e.g., `https://peaks-baseball-api.onrender.com`)
-
-## **Step 3: Configure Custom Domain**
-
-### **3.1 On Vercel (Frontend)**
-1. Go to your Vercel project settings
-2. Click **"Domains"**
+### **2.1 On Render Frontend Service**
+1. Go to your `peaks-baseball-frontend` service
+2. Click **"Settings"** → **"Custom Domains"**
 3. Add your custom domain (e.g., `peaksbaseball.com`)
-4. Vercel will provide DNS records
+4. Render will provide DNS records
 
-### **3.2 On GoDaddy**
+### **2.2 On GoDaddy**
 1. Log into your GoDaddy account
 2. Go to your domain's DNS settings
-3. Add these records:
-   - **Type**: A
-   - **Name**: @
-   - **Value**: 76.76.19.19 (Vercel's IP)
-   - **TTL**: 600
+3. Add the DNS records provided by Render
 
-   - **Type**: CNAME
-   - **Name**: www
-   - **Value**: your-vercel-project.vercel.app
-   - **TTL**: 600
+## **Step 3: Run Database Migrations**
 
-### **3.3 Update Vercel Configuration**
-Update `vercel.json` with your Render backend URL:
-```json
-{
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://peaks-baseball-api.onrender.com/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+### **3.1 Using Render Shell**
+1. Go to your `peaks-baseball-api` service
+2. Click **"Shell"** tab
+3. Run: `ruby run_migrations.rb`
 
-## **Step 4: Run Database Migrations**
-
-### **4.1 Using Render Shell**
-1. Go to your Render dashboard
-2. Click on your web service
-3. Go to **"Shell"** tab
-4. Run: `ruby run_migrations.rb`
-
-### **4.2 Or Using Local Connection**
+### **3.2 Or Using Local Connection**
 1. Get your `DATABASE_URL` from Render
 2. Run locally: `DATABASE_URL=your_render_db_url ruby run_migrations.rb`
 
-## **Step 5: Test Your Deployment**
+## **Step 4: Test Your Deployment**
 
 1. **Test Backend**: Visit your Render API URL
 2. **Test Frontend**: Visit your custom domain
@@ -111,33 +77,47 @@ Update `vercel.json` with your Render backend URL:
 
 ## **Cost Breakdown**
 
-- **Render**: Free tier (750 hours/month)
-- **Vercel**: Free tier (unlimited sites)
+- **Render Backend**: Free tier (750 hours/month)
+- **Render Frontend**: Free tier (static hosting)
+- **Render PostgreSQL**: Free tier
 - **GoDaddy Domain**: ~$12/year
 - **Total**: ~$12/year for domain only
 
-## **Benefits of Render**
+## **Benefits of All-Render Setup**
 
 ### **Backend (API):**
 - ✅ **Free PostgreSQL database**
 - ✅ **Automatic HTTPS**
 - ✅ **Custom domain support**
 - ✅ **Automatic deployments**
-- ✅ **Better reliability**
 
 ### **Frontend (React):**
-- ✅ **Vercel's excellent performance**
+- ✅ **Free static hosting**
 - ✅ **Global CDN**
 - ✅ **Automatic deployments**
 - ✅ **Custom domain support**
+- ✅ **Same platform as backend**
+
+## **Architecture:**
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Render        │    │   Render        │
+│   (Frontend)    │    │   (Backend)     │
+│                 │    │                 │
+│   React App     │◄──►│   Sinatra API   │
+│   (Static)      │    │   (server.rb)   │
+│                 │    │   + PostgreSQL  │
+└─────────────────┘    └─────────────────┘
+```
 
 ## **Troubleshooting**
 
 ### **Common Issues:**
 
-1. **Database Connection**: Make sure `DATABASE_URL` is set in Render
+1. **Database Connection**: Make sure `DATABASE_URL` is set in backend service
 2. **CORS Errors**: Backend has CORS headers configured
-3. **API Endpoints**: Check that Vercel rewrites point to correct Render URL
+3. **API Endpoints**: Frontend uses `REACT_APP_API_URL` environment variable
 4. **Domain Issues**: DNS propagation can take up to 48 hours
 
 ### **Useful Commands:**
@@ -162,17 +142,4 @@ cd client && npm run build
 
 Your Peaks Baseball site will be live at your custom domain! 🎉
 
-## **Architecture:**
-
-```
-┌─────────────────┐    ┌─────────────────┐
-│   Vercel        │    │   Render        │
-│   (Frontend)    │    │   (Backend)     │
-│                 │    │                 │
-│   React App     │◄──►│   Sinatra API   │
-│   (client/)     │    │   (server.rb)   │
-│                 │    │   + PostgreSQL  │
-└─────────────────┘    └─────────────────┘
-```
-
-This setup is much more reliable and easier to manage than Railway! 
+This all-Render setup is much simpler and more reliable than mixing platforms! 

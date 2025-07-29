@@ -7,4 +7,14 @@ services:
     envVars:
       - key: RACK_ENV
         value: production
+    plan: free
+
+  - type: web
+    name: peaks-baseball-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://peaks-baseball-api.onrender.com
     plan: free 
