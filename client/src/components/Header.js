@@ -8,6 +8,7 @@ const HeaderContainer = styled.header`
   color: var(--primary-bg);
   padding: 1rem 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 `;
 
 const NavContainer = styled.div`
@@ -17,6 +18,7 @@ const NavContainer = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  position: relative;
 `;
 
 const Logo = styled(Link)`
@@ -65,14 +67,16 @@ const MobileMenu = styled.div`
   
   @media (max-width: 768px) {
     display: ${props => props.isOpen ? 'block' : 'none'};
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 80px;
     left: 0;
     right: 0;
     background-color: var(--primary-text);
     padding: 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
   }
 `;
 
