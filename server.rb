@@ -91,8 +91,9 @@ def init_main_tables
     if result.first['exists'] == 'f'
       puts "Setting up main database tables..."
       
-      # Read and execute the setup SQL
-      sql_content = File.read('setup_database.sql')
+      # Read and execute the setup SQL (use clean version for production)
+      sql_file = ENV['RACK_ENV'] == 'production' ? 'setup_database_clean.sql' : 'setup_database.sql'
+      sql_content = File.read(sql_file)
       db_connection.exec(sql_content)
       
       puts "✅ Main database tables created successfully!"

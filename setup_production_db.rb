@@ -16,16 +16,16 @@ begin
   db = PG.connect(ENV['DATABASE_URL'])
   puts "Connected successfully!"
   
-  # Read and execute the setup SQL
-  puts "Reading setup_database.sql..."
-  sql_content = File.read('setup_database.sql')
+  # Read and execute the clean setup SQL (no sample data)
+  puts "Reading setup_database_clean.sql..."
+  sql_content = File.read('setup_database_clean.sql')
   
   puts "Executing database setup..."
   db.exec(sql_content)
   
   puts "✅ Production database setup completed successfully!"
   puts "Tables created: players, games, stats, highlights"
-  puts "Sample data inserted"
+  puts "Clean database ready for production use"
   
 rescue => e
   puts "❌ Error setting up production database: #{e.message}"
