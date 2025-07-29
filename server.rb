@@ -7,11 +7,11 @@ require 'pg'
 
 puts "=== Starting Peaks Baseball API ==="
 puts "Ruby version: #{RUBY_VERSION}"
-puts "Port: #{ENV['PORT'] || 3001}"
+puts "Port: #{ENV['PORT'] || 10000}"
 puts "Environment: #{ENV['RACK_ENV'] || 'development'}"
 
-# Configure Sinatra to run on port from environment or default to 3001
-port = ENV['PORT'] || 3001
+# Configure Sinatra to run on port from environment or default to 10000
+port = ENV['PORT'] || 10000
 set :port, port
 set :bind, '0.0.0.0'
 
@@ -1478,15 +1478,15 @@ get '/' do
   end
 end
 
-puts "Starting Peaks Baseball API server on port #{ENV['PORT'] || 3001}..."
-puts "API available at: http://localhost:#{ENV['PORT'] || 3001}"
-puts "Health check: http://localhost:#{ENV['PORT'] || 3001}/"
-puts "Test endpoint: http://localhost:#{ENV['PORT'] || 3001}/test"
-puts "Players: http://localhost:#{ENV['PORT'] || 3001}/api/v1/players"
-puts "Games: http://localhost:#{ENV['PORT'] || 3001}/api/v1/games"
-puts "Stats: http://localhost:#{ENV['PORT'] || 3001}/api/v1/stats"
-puts "Highlights: http://localhost:#{ENV['PORT'] || 3001}/api/v1/highlights"
-puts "Roster: http://localhost:#{ENV['PORT'] || 3001}/api/v1/roster/stats"
+puts "Starting Peaks Baseball API server on port #{ENV['PORT'] || 10000}..."
+puts "API available at: http://localhost:#{ENV['PORT'] || 10000}"
+puts "Health check: http://localhost:#{ENV['PORT'] || 10000}/"
+puts "Test endpoint: http://localhost:#{ENV['PORT'] || 10000}/test"
+puts "Players: http://localhost:#{ENV['PORT'] || 10000}/api/v1/players"
+puts "Games: http://localhost:#{ENV['PORT'] || 10000}/api/v1/games"
+puts "Stats: http://localhost:#{ENV['PORT'] || 10000}/api/v1/stats"
+puts "Highlights: http://localhost:#{ENV['PORT'] || 10000}/api/v1/highlights"
+puts "Roster: http://localhost:#{ENV['PORT'] || 10000}/api/v1/roster/stats"
 puts "Environment: #{ENV['RACK_ENV'] || 'development'}"
 puts "Database URL: #{ENV['DATABASE_URL'] ? 'Set' : 'Not set'}"
 puts "Server starting..." 
