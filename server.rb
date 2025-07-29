@@ -6,7 +6,8 @@ require 'json'
 require 'pg'
 
 # Configure Sinatra to run on port from environment or default to 3001
-set :port, ENV['PORT'] || 3001
+port = ENV['PORT'] || 3001
+set :port, port
 set :bind, '0.0.0.0'
 
 # Serve static files from the client build directory
@@ -1444,6 +1445,12 @@ get '/api/v1/season/stats' do
   }.to_json
 end
 
+# Simple test endpoint
+get '/test' do
+  content_type :json
+  { status: 'ok', message: 'Server is running!' }.to_json
+end
+
 # Health check
 get '/' do
   content_type :json
@@ -1469,10 +1476,12 @@ end
 puts "Starting Peaks Baseball API server on port #{ENV['PORT'] || 3001}..."
 puts "API available at: http://localhost:#{ENV['PORT'] || 3001}"
 puts "Health check: http://localhost:#{ENV['PORT'] || 3001}/"
+puts "Test endpoint: http://localhost:#{ENV['PORT'] || 3001}/test"
 puts "Players: http://localhost:#{ENV['PORT'] || 3001}/api/v1/players"
 puts "Games: http://localhost:#{ENV['PORT'] || 3001}/api/v1/games"
 puts "Stats: http://localhost:#{ENV['PORT'] || 3001}/api/v1/stats"
 puts "Highlights: http://localhost:#{ENV['PORT'] || 3001}/api/v1/highlights"
 puts "Roster: http://localhost:#{ENV['PORT'] || 3001}/api/v1/roster/stats"
 puts "Environment: #{ENV['RACK_ENV'] || 'development'}"
-puts "Database URL: #{ENV['DATABASE_URL'] ? 'Set' : 'Not set'}" 
+puts "Database URL: #{ENV['DATABASE_URL'] ? 'Set' : 'Not set'}"
+puts "Server starting..." 
