@@ -39,13 +39,39 @@ options "*" do
   200
 end
 
+# Health check endpoint
+get '/' do
+  content_type :json
+  {
+    status: 'ok',
+    message: 'Peaks Baseball API is running',
+    environment: ENV['RACK_ENV'] || 'development',
+    public_folder: settings.public_folder,
+    index_exists: File.exist?(File.join(settings.public_folder, 'index.html'))
+  }.to_json
+end
+
 # Serve React app for all non-API routes
 get '/*' do
   # Don't serve React app for API routes
   pass if request.path_info.start_with?('/api/')
   
-  # Serve index.html for all other routes (React Router)
-  send_file File.join(settings.public_folder, 'index.html')
+  # Check if the file exists in the public folder first
+  file_path = File.join(settings.public_folder, request.path_info)
+  if File.exist?(file_path) && !File.directory?(file_path)
+    send_file file_path
+  else
+    # Serve index.html for all other routes (React Router)
+    index_path = File.join(settings.public_folder, 'index.html')
+    if File.exist?(index_path)
+      puts "Serving React app for route: #{request.path_info}"
+      send_file index_path
+    else
+      puts "ERROR: index.html not found at #{index_path}"
+      status 404
+      "Not Found - React app not built or index.html missing"
+    end
+  end
 end
 
 # Database connection
