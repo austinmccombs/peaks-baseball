@@ -108,6 +108,43 @@ end
 # Initialize main tables on startup
 init_main_tables
 
+# Clear test data on startup if in production and tables exist
+def clear_test_data_if_needed
+  return unless ENV['RACK_ENV'] == 'production'
+  
+  begin
+    # Check if players table exists and has data
+    result = db_connection.exec("SELECT COUNT(*) as count FROM players")
+    player_count = result.first['count'].to_i
+    
+    if player_count > 0
+      puts "Found #{player_count} test players in production database. Clearing test data..."
+      
+      # Delete in order to respect foreign key constraints
+      db_connection.exec("DELETE FROM highlights")
+      puts "✅ Cleared highlights table"
+      
+      db_connection.exec("DELETE FROM stats")
+      puts "✅ Cleared stats table"
+      
+      db_connection.exec("DELETE FROM games")
+      puts "✅ Cleared games table"
+      
+      db_connection.exec("DELETE FROM players")
+      puts "✅ Cleared players table"
+      
+      puts "✅ All test data cleared successfully!"
+    else
+      puts "No test data found in production database"
+    end
+  rescue => e
+    puts "Error clearing test data: #{e.message}"
+  end
+end
+
+# Clear test data on startup
+clear_test_data_if_needed
+
 # Admin authentication helper
 def authenticate_admin(username, password)
   begin
