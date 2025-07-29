@@ -7,11 +7,4 @@ services:
     envVars:
       - key: RACK_ENV
         value: production
-      - key: PORT
-        value: 10000
-    plan: free
-
-  - type: postgresql
-    name: peaks-baseball-db
-    plan: free
-    ipAllowList: [] 
+    plan: free 
