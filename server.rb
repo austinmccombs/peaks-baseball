@@ -311,20 +311,40 @@ post '/api/v1/players' do
   content_type :json
   data = JSON.parse(request.body.read)
   
+  # Validate required fields
+  unless data['first_name'] && data['first_name'].strip != ''
+    status 422
+    return { error: 'First name is required' }.to_json
+  end
+  
+  unless data['last_name'] && data['last_name'].strip != ''
+    status 422
+    return { error: 'Last name is required' }.to_json
+  end
+  
+  unless data['jersey_number'] && data['jersey_number'].to_s.strip != ''
+    status 422
+    return { error: 'Jersey number is required' }.to_json
+  end
+  
   begin
+    # Handle empty date strings properly
+    birth_date = data['birth_date']
+    birth_date = nil if birth_date.nil? || birth_date.to_s.strip == ''
+    
     result = db_connection.exec("
       INSERT INTO players (first_name, last_name, jersey_number, position, bio, height_inches, weight_lbs, birth_date, photo_url, active, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
       RETURNING *
     ", [
-      data['first_name'],
-      data['last_name'],
+      data['first_name'].strip,
+      data['last_name'].strip,
       data['jersey_number'].to_i,
-      data['position'],
+      data['position'] || '',
       data['bio'] || '',
       data['height_inches']&.to_i || nil,
       data['weight_lbs']&.to_i || nil,
-      data['birth_date'] || nil,
+      birth_date,
       data['photo_url'] || '',
       true
     ])
@@ -361,6 +381,10 @@ put '/api/v1/players/:id' do
     # Only update active field if it's explicitly provided
     active_value = data.key?('active') ? data['active'] : nil
     
+    # Handle empty date strings properly
+    birth_date = data['birth_date']
+    birth_date = nil if birth_date.nil? || birth_date.to_s.strip == ''
+    
     if active_value.nil?
       # Don't update active field
       result = db_connection.exec("
@@ -370,14 +394,14 @@ put '/api/v1/players/:id' do
         WHERE id = $10
         RETURNING *
       ", [
-        data['first_name'],
-        data['last_name'],
+        data['first_name']&.strip || '',
+        data['last_name']&.strip || '',
         data['jersey_number']&.to_i || 0,
-        data['position'],
+        data['position'] || '',
         data['bio'] || '',
         data['height_inches']&.to_i || nil,
         data['weight_lbs']&.to_i || nil,
-        data['birth_date'] || nil,
+        birth_date,
         data['photo_url'] || '',
         params[:id]
       ])
@@ -390,14 +414,14 @@ put '/api/v1/players/:id' do
         WHERE id = $11
         RETURNING *
       ", [
-        data['first_name'],
-        data['last_name'],
+        data['first_name']&.strip || '',
+        data['last_name']&.strip || '',
         data['jersey_number']&.to_i || 0,
-        data['position'],
+        data['position'] || '',
         data['bio'] || '',
         data['height_inches']&.to_i || nil,
         data['weight_lbs']&.to_i || nil,
-        data['birth_date'] || nil,
+        birth_date,
         data['photo_url'] || '',
         active_value,
         params[:id]
