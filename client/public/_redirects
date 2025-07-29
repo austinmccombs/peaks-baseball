@@ -1,2 +1,11 @@
-# Handle client-side routing
-/*    /index.html   200 
+# Handle client-side routing - redirect all routes to index.html
+/*    /index.html   200
+
+# Specific routes for better handling
+/roster    /index.html   200
+/games     /index.html   200
+/stats     /index.html   200
+/highlights    /index.html   200
+/admin     /index.html   200
+/admin/login    /index.html   200
+/admin/setup    /index.html   200 

@@ -11,11 +11,20 @@
       name="description"
       content="Peaks Baseball Team - Competitive Little League Baseball"
     />
-
     <link rel="manifest" href="/manifest.json" />
     <title>Peaks Baseball</title>
     <!-- Preload GameChanger script for better performance -->
     <link rel="preload" href="https://widgets.gc.com/static/js/sdk.v1.js" as="script" crossorigin="anonymous" />
+    <script>
+      // Handle client-side routing for direct URL access
+      (function() {
+        var path = window.location.pathname;
+        if (path !== '/' && !path.startsWith('/static/') && !path.startsWith('/api/')) {
+          // This is a client-side route, ensure React Router handles it
+          window.history.replaceState(null, null, path);
+        }
+      })();
+    </script>
     <style>
       body {
         margin: 0;
