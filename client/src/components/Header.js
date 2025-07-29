@@ -60,6 +60,22 @@ const MobileMenuButton = styled.button`
   }
 `;
 
+const MobileMenu = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: ${props => props.isOpen ? 'block' : 'none'};
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--primary-text);
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+`;
+
 const NavList = styled.ul`
   display: flex;
   list-style: none;
@@ -68,15 +84,7 @@ const NavList = styled.ul`
   gap: 2rem;
   
   @media (max-width: 768px) {
-    display: ${props => props.isOpen ? 'flex' : 'none'};
     flex-direction: column;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--primary-text);
-    padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     gap: 1rem;
   }
 `;
@@ -165,7 +173,23 @@ const Header = () => {
         </MobileMenuButton>
         
         <Nav>
-          <NavList isOpen={isMobileMenuOpen}>
+          <NavList>
+            {navItems.map((item) => (
+              <NavItem key={item.path}>
+                <NavLink 
+                  to={item.path} 
+                  className={location.pathname === item.path ? 'active' : ''}
+                >
+                  {item.icon && <span style={{ marginRight: '0.5rem' }}>{item.icon}</span>}
+                  {item.label}
+                </NavLink>
+              </NavItem>
+            ))}
+          </NavList>
+        </Nav>
+        
+        <MobileMenu isOpen={isMobileMenuOpen}>
+          <NavList>
             {navItems.map((item) => (
               <NavItem key={item.path}>
                 <NavLink 
@@ -179,7 +203,7 @@ const Header = () => {
               </NavItem>
             ))}
           </NavList>
-        </Nav>
+        </MobileMenu>
       </NavContainer>
     </HeaderContainer>
   );
