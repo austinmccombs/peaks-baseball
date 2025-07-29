@@ -15,19 +15,11 @@ COPY Gemfile Gemfile.lock ./
 # Install Ruby gems
 RUN bundle install
 
-# Copy the backend files only (exclude client directory)
-COPY server.rb ./
-COPY config.ru ./
-COPY run_migrations.rb ./
-COPY db/ ./db/
-COPY app/ ./app/
-
-# Create a non-root user
-RUN useradd -m appuser
-USER appuser
+# Copy the simple server for testing
+COPY simple_server.rb ./
 
 # Expose port
 EXPOSE 3001
 
-# Start the Sinatra API server
-CMD ["ruby", "server.rb"] 
+# Start the simple test server
+CMD ["bundle", "exec", "ruby", "simple_server.rb"] 

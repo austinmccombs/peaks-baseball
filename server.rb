@@ -5,6 +5,11 @@ require 'sinatra/cross_origin'
 require 'json'
 require 'pg'
 
+puts "=== Starting Peaks Baseball API ==="
+puts "Ruby version: #{RUBY_VERSION}"
+puts "Port: #{ENV['PORT'] || 3001}"
+puts "Environment: #{ENV['RACK_ENV'] || 'development'}"
+
 # Configure Sinatra to run on port from environment or default to 3001
 port = ENV['PORT'] || 3001
 set :port, port
