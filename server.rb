@@ -56,13 +56,23 @@ get '/*' do
   # Don't serve React app for API routes
   pass if request.path_info.start_with?('/api/')
   
+  puts "Requested path: #{request.path_info}"
+  puts "Public folder: #{settings.public_folder}"
+  
   # Check if the file exists in the public folder first
   file_path = File.join(settings.public_folder, request.path_info)
+  puts "Looking for file: #{file_path}"
+  puts "File exists: #{File.exist?(file_path)}"
+  
   if File.exist?(file_path) && !File.directory?(file_path)
+    puts "Serving static file: #{request.path_info}"
     send_file file_path
   else
     # Serve index.html for all other routes (React Router)
     index_path = File.join(settings.public_folder, 'index.html')
+    puts "Looking for index.html: #{index_path}"
+    puts "Index.html exists: #{File.exist?(index_path)}"
+    
     if File.exist?(index_path)
       puts "Serving React app for route: #{request.path_info}"
       send_file index_path
